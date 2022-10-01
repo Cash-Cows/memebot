@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Consumer {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  walletAddress String   @unique @db.VarChar(255)
+  consumed      String   @default("0")
+  images        Json
+  memes         Meme[]
+}
+
+model Search {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  query     String   @unique @db.VarChar(255)
+  results   Json
+}
+
+model Source {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String   @db.VarChar(255)
+  url         String   @unique @db.VarChar(255)
+  cid         String?  @unique @db.VarChar(255)
+  source      String   @db.VarChar(255)
+  tags        Json?
+  data        Json?
+  memes       Meme[]
+}
+
+model Meme {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String   @db.VarChar(255)
+  url         String   @unique @db.VarChar(255)
+  cid         String   @unique @db.VarChar(255)
+  tags        Json?
+  sourceId    Int
+  consumerId  Int
+  source      Source @relation(fields: [sourceId], references: [id])
+  consumer    Consumer @relation(fields: [consumerId], references: [id])
+}

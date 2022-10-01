@@ -1,0 +1,9 @@
+{
+  "rpc": "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+  "chainId": 1,
+  "scanner": "https://etherscan.io",
+  "address": "0x4bFDb8fa13BD9f9E946a6BDDa00907ed77b1C76a",
+  "rate": "120000000000000000000",
+  "abi": [],
+  "bytecode": ""
+}
