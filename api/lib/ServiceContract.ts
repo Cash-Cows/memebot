@@ -83,9 +83,13 @@ export default class ServiceContract extends ContractAdmin {
   /* Private Properties
   --------------------------------------------------------------------*/
 
+  //contract address
   private _address: string;
+  //contract abi
   private _abi: ObjectAny[];
+  //contract bytecode
   private _bytecode: string;
+  //service rate
   private _rate: ethers.BigNumber;
 
   /* Constructor

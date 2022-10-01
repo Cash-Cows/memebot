@@ -1,12 +1,22 @@
 {
   "private": true,
   "scripts": {
-    "build": "npx tsc",
-    "start": "node dist/index.js"
+    "hardhat_test": "hardhat test",
+    "hardhat_compile": "hardhat compile",
+    "api_build": "npx tsc",
+    "api_start": "node dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "prisma": {
+    "schema": "api/schema.prisma",
+    "migrate": "api/migrations"
+  },
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.8",
+    "@nomiclabs/hardhat-waffle": "2.0.1",
+    "@openzeppelin/contracts": "4.4.2",
     "@prisma/client": "4.3.1",
     "@tensorflow/tfjs-core": "3.20.0",
     "@tensorflow/tfjs-node": "3.20.0",
@@ -15,11 +25,16 @@
     "@types/node-fetch": "2.6.2",
     "@vladmandic/face-api": "1.7.3",
     "canvas": "2.10.1",
+    "chai": "4.3.4",
     "dotenv": "^14.2.0",
+    "ethereum-waffle": "3.4.0",
     "ethers": "5.7.1",
     "express": "^4.17.1",
     "gif-encoder-2": "1.0.5",
     "gifuct-js": "2.1.2",
+    "hardhat": "2.4.3",
+    "hardhat-contract-sizer": "2.4.0",
+    "hardhat-gas-reporter": "1.0.6",
     "ipfs-only-hash": "4.0.0",
     "node-fetch": "2.6.7",
     "prisma": "4.3.1",

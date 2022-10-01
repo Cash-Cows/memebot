@@ -303,7 +303,10 @@ export default class MemeGenerator {
   /**
    * Returns the source given the CID. If none exists, it will create one
    */
-  private static async _getSourceFromCID(url: string, cid: string): Promise<Source> {
+  private static async _getSourceFromCID(
+    url: string, 
+    cid: string
+  ): Promise<Source> {
     //check if the source exists
     const source = await prisma.source.findUnique({ 
       where: { cid: cid } 

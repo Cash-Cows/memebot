@@ -19,6 +19,9 @@
     "test",
     "dist",
     "prisma",
-    "node_modules"
+    "node_modules",
+    "chain",
+    "bot",
+    "docs"
   ]
 }

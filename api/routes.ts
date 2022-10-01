@@ -3,18 +3,18 @@ import path from 'path';
 //http routing
 import express from 'express';
 //the config for the service contract
-import serviceConfig from '../service.json';
+import serviceConfig from './service.json';
 //importing this to load the models
-import GifFaces from './models/GifFaces';
+import GifFaces from './lib/GifFaces';
 //importing this to setup the service contract
-import ServiceContract from './models/ServiceContract';
+import ServiceContract from './lib/ServiceContract';
 //Meme model crud
-import MemeGenerator from './models/MemeGenerator';
+import MemeGenerator from './lib/MemeGenerator';
 //Consumer model crud
-import Consumer from './models/Consumer';
+import Consumer from './lib/Consumer';
 
 //gif faces setup
-const models = path.resolve(__dirname, '../models');
+const models = path.resolve(__dirname, '../api/models');
 GifFaces.loadModels(models);
 //express setup
 const app = express();
