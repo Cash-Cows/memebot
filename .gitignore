@@ -105,4 +105,15 @@ dist
 
 .gcp.json
 
-prisma/migrations
+api/migrations
+
+*.dbg.json
+
+chain/cache
+chain/artifacts/@openzeppelin
+chain/artifacts/build-info
+chain/artifacts/erc721b
+chain/artifacts/hardhat
+chain/artifacts/contracts/mock
+
+archives
