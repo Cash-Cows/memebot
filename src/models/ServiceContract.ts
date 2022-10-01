@@ -1,8 +1,11 @@
+//used to interact with the service contract on the blockchain
 import { ethers } from 'ethers';
-
+//centralized type defs
 import { ObjectAny } from '../utils/types';
-
+//expressive error reporting pattern
 import Exception from './Exception';
+
+export const BigNumber = ethers.BigNumber;
 
 export class ContractAdmin {
   /* Private Properties

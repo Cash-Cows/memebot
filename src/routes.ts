@@ -1,23 +1,30 @@
+//used to resolve the models path
 import path from 'path';
+//http routing
 import express from 'express';
-
-import GifFaces from './models/GifFaces';
-import MemeGenerator from './models/MemeGenerator';
-
+//the config for the service contract
 import serviceConfig from '../service.json';
+//importing this to load the models
+import GifFaces from './models/GifFaces';
+//importing this to setup the service contract
 import ServiceContract from './models/ServiceContract';
+//Meme model crud
+import MemeGenerator from './models/MemeGenerator';
+//Consumer model crud
 import Consumer from './models/Consumer';
 
-//load models
+//gif faces setup
 const models = path.resolve(__dirname, '../models');
 GifFaces.loadModels(models);
-
+//express setup
 const app = express();
-
+//service contract setup
 const service = ServiceContract.load(
   process.env.TOKEN_ADMIN_KEY as string, 
   serviceConfig
 );
+
+//declare some routes
 
 app.get('/register', async (req, res) => {
   //if no wallet address

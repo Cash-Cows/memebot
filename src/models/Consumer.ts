@@ -1,9 +1,9 @@
-import { ethers } from 'ethers';
-
+//consumer table ORM (mysql)
 import { prisma } from '../utils/prisma';
-
+//expressive error reporting pattern
 import Exception from './Exception';
-import ServiceContract from './ServiceContract';
+//the blockchain service contract
+import ServiceContract, { BigNumber } from './ServiceContract';
 
 export default class Consumer {
   /* Public Static Methods
@@ -33,7 +33,7 @@ export default class Consumer {
       { where: { walletAddress } }
     );
     //make consumed a big number
-    const consumedBalance = ethers.BigNumber.from(consumer.consumed);
+    const consumedBalance = BigNumber.from(consumer.consumed);
     //get the owner balance from the blockchain
     const totalBalance = await service.balanceOf(walletAddress);
     return { totalBalance, consumedBalance, serviceRate: service.rate };

@@ -1,7 +1,10 @@
+//used to upload generated gifs to infura ipfs
 import https from 'https';
+//used to fetch remote gifs
 import fetch from 'node-fetch';
+//used to make animated gifs
 import GIFEncoder from 'gif-encoder-2';
-
+//centralized type defs
 import {
   Box,
   TenorResponse,
@@ -9,10 +12,13 @@ import {
   SearchResponse,
   ObjectAny
 } from '../utils/types';
+//canvas node polyfills
 import { Image } from '../utils/canvas';
+//meme table ORM (mysql)
 import { prisma, Prisma, Source } from '../utils/prisma';
-
+//expressive error reporting pattern
 import Exception from './Exception';
+//used to detect faces
 import GifFaces from './GifFaces';
 
 const { TENOR_KEY, INFURA_API_KEY, INFURA_API_SECRET } = process.env;

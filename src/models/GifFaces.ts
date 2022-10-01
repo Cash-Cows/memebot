@@ -1,10 +1,14 @@
+//used to get content identfiers of file buffers (sent to db)
 import CID from 'ipfs-only-hash';
+//the face detection library (latest updated with tensorflow)
 import * as faceapi from '@vladmandic/face-api';
+//split animated gifs into franes
 import { parseGIF, decompressFrames } from 'gifuct-js';
-
-import { Box, Frame } from '../utils/types';
+//centralized type defs
+import type { Box, Frame } from '../utils/types';
+//canvas node polyfills
 import { Canvas, CanvasImage, createCanvas } from '../utils/canvas';
-
+//expressive error reporting pattern
 import Exception from './Exception';
 
 export class GifFacesUtils {
