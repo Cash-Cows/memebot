@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 
-import { ObjectAny } from './types';
+import { ObjectAny } from '../utils/types';
+
 import Exception from './Exception';
 
 export class ContractAdmin {

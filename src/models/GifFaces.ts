@@ -2,9 +2,10 @@ import CID from 'ipfs-only-hash';
 import * as faceapi from '@vladmandic/face-api';
 import { parseGIF, decompressFrames } from 'gifuct-js';
 
+import { Box, Frame } from '../utils/types';
+import { Canvas, CanvasImage, createCanvas } from '../utils/canvas';
+
 import Exception from './Exception';
-import { Box, Frame } from './types';
-import { Canvas, CanvasImage, createCanvas } from './canvas';
 
 export class GifFacesUtils {
   /* Private Static Properties

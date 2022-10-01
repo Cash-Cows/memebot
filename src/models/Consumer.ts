@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 
-import { prisma } from './prisma';
+import { prisma } from '../utils/prisma';
+
 import Exception from './Exception';
 import ServiceContract from './ServiceContract';
 

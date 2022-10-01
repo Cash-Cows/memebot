@@ -1,5 +1,3 @@
-import { prisma, Prisma, Source } from './prisma';
-
 import https from 'https';
 import fetch from 'node-fetch';
 import GIFEncoder from 'gif-encoder-2';
@@ -10,8 +8,10 @@ import {
   SearchResult,
   SearchResponse,
   ObjectAny
-} from './types';
-import { Image } from './canvas';
+} from '../utils/types';
+import { Image } from '../utils/canvas';
+import { prisma, Prisma, Source } from '../utils/prisma';
+
 import Exception from './Exception';
 import GifFaces from './GifFaces';
 
