@@ -1,5 +1,7 @@
-//used to upload generated gifs to infura ipfs
-import https from 'https';
+//used to transform a buffer into a stream (for uploading)
+import { Readable } from 'stream';
+//used to format the request (for uploading to ipfs)
+import FormData from 'form-data';
 //used to fetch remote gifs
 import fetch from 'node-fetch';
 //used to make animated gifs
@@ -15,11 +17,13 @@ import {
 //canvas node polyfills
 import { Image } from '../utils/canvas';
 //meme table ORM (mysql)
-import { prisma, Prisma, Source } from '../utils/prisma';
+import { prisma, Prisma, Source, Consumer } from '../utils/prisma';
 //expressive error reporting pattern
 import Exception from './Exception';
 //used to detect faces
 import GifFaces from './GifFaces';
+//used in generate to conume the tokens
+import ServiceContract, { BigNumber } from './ServiceContract';
 
 const { TENOR_KEY, INFURA_API_KEY, INFURA_API_SECRET } = process.env;
 
@@ -145,25 +149,24 @@ export default class MemeGenerator {
   /**
    * Generates custom faces on top of gif memes
    */
-  public static async generate(walletAddress: string, sourceURL: string) {
+  public static async generate(
+    walletAddress: string, 
+    sourceURL: string,
+    service: ServiceContract
+  ) {
     //get the consumer
-    const consumer = await prisma.consumer.findUnique(
+    const consumer = await prisma.consumer.findUniqueOrThrow(
       { where: { walletAddress }}
     );
-    //if the consumer does not exist
-    if (!consumer) {
-      throw Exception.for('Invalid consumer');
-    }
 
     //get the source
-    const source = await prisma.source.findUnique(
+    const source = await prisma.source.findUniqueOrThrow(
       { where: { url: sourceURL }}
     );
-    //if the source does not exist
-    if (!source || !Array.isArray(source.data) || !source.data.length) {
+    //if the source data is invalid
+    if (!Array.isArray(source.data) || !source.data.length) {
       throw Exception.for('Invalid source');
     }
-  
     //check if sourceId already exists in meme
     const exists = await prisma.meme.findFirst({ where: { 
       consumerId: consumer.id, 
@@ -174,12 +177,90 @@ export default class MemeGenerator {
       //then no need to do anything else
       return exists;
     }
-
     //make sure the consumer has images
     if (!Array.isArray(consumer.images) || !consumer.images.length) {
       throw Exception.for('Consumer has no images');
+    } 
+    
+    //get the total balance from the blockchain
+    const totalBalance = await service.balanceOf(walletAddress);
+    if (await this._canConsume(consumer, totalBalance, service.rate)) {
+      throw Exception.for('Not enough balance');
     }
 
+    //start generating
+    const animation = await this._generate(consumer, source);
+    const animationBuffer = animation.out.getData();
+    const animationCID = await this._upload(animationBuffer);
+
+    //now consume it
+    await this._consume(consumer, totalBalance, service.rate);
+
+    return await prisma.meme.create({ 
+      data: {
+        description: source.description,
+        url: `${service.config.host}/ipfs/${animationCID}`,
+        cid: animationCID,
+        tags: (source.tags as string[]) || [],
+        sourceId: source.id,
+        consumerId: consumer.id
+      }
+    });
+  }
+
+  /* Private Static Methods
+  --------------------------------------------------------------------*/
+
+  /**
+   * Returns true if the consumer can consume a service
+   */
+  private static async _canConsume(
+    consumer: Consumer, 
+    totalBalance: BigNumber,
+    rate: BigNumber
+  ) {
+    //check balance
+    return parseInt(
+      totalBalance
+        .sub(BigNumber.from(consumer.consumed))
+        .sub(rate)
+        .toString()
+    ) > 0;
+  }
+
+  /**
+   * Consumes the service
+   */
+  private static async _consume(
+    consumer: Consumer, 
+    totalBalance: BigNumber,
+    rate: BigNumber
+  ) {
+    return await prisma.consumer.update({
+      where: { walletAddress: consumer.walletAddress },
+      data: { 
+        consumed: BigNumber
+          .from(consumer.consumed)
+          .add(rate)
+          .toString() 
+      }
+    });
+  }
+
+  /**
+   * Returns the JSON results of a url call
+   */
+  private static async _fetchJSON(url: string) {
+    const response = await fetch(url);
+    return response.json();
+  }
+
+  private static async _generate(consumer: Consumer, source: Source) {
+    //if the source data is invalid
+    if (!Array.isArray(source.data) || !source.data.length) {
+      throw Exception.for('Invalid source');
+    }
+  
     const consumerImages = consumer.images as string[];
     const buffer = await GifFaces.getBuffer(source.url);
     const frames = GifFaces.getGifFrames(buffer);
@@ -202,10 +283,10 @@ export default class MemeGenerator {
         canvasImage.canvas.getContext('2d').drawImage(
           consumerImage, 
           0, 0, consumerImage.width, consumerImage.height,
-          faces[i].x,
-          faces[i].y,
-          faces[i].width,
-          faces[i].height
+          faces[j].x,
+          faces[j].y,
+          faces[j].width,
+          faces[j].height
         )
       }
 
@@ -215,30 +296,7 @@ export default class MemeGenerator {
 
     animation.finish();
 
-    const animationBuffer = animation.out.getData();
-    const animationCID = await this._upload(animationBuffer);
-
-    const data = {
-      description: source.description,
-      url: `https://ipfs.io/ipfs/${animationCID}`,
-      cid: animationCID,
-      tags: (source.tags as string[]) || [],
-      sourceId: source.id,
-      consumerId: consumer.id
-    };
-
-    return await prisma.meme.create({ data });
-  }
-
-  /* Private Static Methods
-  --------------------------------------------------------------------*/
-
-  /**
-   * Returns the JSON results of a url call
-   */
-  private static async _fetchJSON(url: string) {
-    const response = await fetch(url);
-    return response.json();
+    return animation;
   }
 
   /**
@@ -255,51 +313,7 @@ export default class MemeGenerator {
       image.src = images[index % images.length];
     })
   }
-  
-  /**
-   * Upates the CID of a source, if it's not already set
-   */
-  private static async _updateSourceCID(source: Source): Promise<Source> {
-    //if there's already a CID
-    if (source.cid) {
-      return source;
-    }
-  
-    //load the url into a buffer
-    const response = await fetch(source.url);
-    const buffer = Buffer.from(await response.arrayBuffer()); 
-    //get cid
-    const cid = await GifFaces.getCID(buffer);
-    //add the cid
-    return await prisma.source.update({
-      where: { id: source.id },
-      data: { cid: cid }
-    })
-  }
 
-  /**
-   * Uploads a file to Infura IPFS
-   */
-  private static _upload(buffer: Buffer): Promise<string> {
-    return new Promise((resolve, reject) => {
-      //upload animation to CDN/IPFS
-      const request = https.request('https://ipfs.infura.io:5001/api/v0/add', {
-        method: 'POST',
-        auth: `${INFURA_API_KEY}:${INFURA_API_SECRET}`,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': buffer.length
-        }
-      }, (response) => response.on('end', () => {
-        GifFaces.getCID(buffer).then(resolve);
-      }));
-
-      request.on('error', (error) => reject(error));
-      request.write(buffer);
-      request.end();
-    });
-  }
-  
   /**
    * Returns the source given the CID. If none exists, it will create one
    */
@@ -329,6 +343,53 @@ export default class MemeGenerator {
         source: '',
         tags: []
       }
+    });
+  }
+  
+  /**
+   * Upates the CID of a source, if it's not already set
+   */
+  private static async _updateSourceCID(source: Source): Promise<Source> {
+    //if there's already a CID
+    if (source.cid) {
+      return source;
+    }
+  
+    //load the url into a buffer
+    const response = await fetch(source.url);
+    const buffer = Buffer.from(await response.arrayBuffer()); 
+    //get cid
+    const cid = await GifFaces.getCID(buffer);
+    //add the cid
+    return await prisma.source.update({
+      where: { id: source.id },
+      data: { cid: cid }
+    })
+  }
+
+  /**
+   * Uploads a file to Infura IPFS
+   */
+  private static _upload(buffer: Buffer): Promise<string> {
+    return new Promise((resolve, reject) => {
+      //make a form
+      const form = new FormData();
+      form.append('file', Readable.from(buffer));
+      //upload animation to CDN/IPFS
+      fetch(`https://ipfs.infura.io:5001/api/v0/add`, {
+        method: 'POST',
+        headers: { 
+          ...form.getHeaders(), 
+          authorization: `Basic ${
+            Buffer
+              .from(`${INFURA_API_KEY}:${INFURA_API_SECRET}`)
+              .toString('base64')
+          }`
+        },
+        body: form
+      })
+      .then(response => response.json().then(json => resolve(json.Hash)))
+      .catch(error => reject(error));
     });
   }
 }

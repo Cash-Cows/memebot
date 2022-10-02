@@ -20,38 +20,41 @@ GifFaces.loadModels(models);
 const app = express();
 //service contract setup
 const service = ServiceContract.load(
-  process.env.TOKEN_ADMIN_KEY as string, 
+  process.env.ADMIN_KEY as string, 
   serviceConfig
 );
 
 //declare some routes
 
+/**
+ * Example: /register
+ * ?image=https://www.wearecashcows.com/images/collection/3283_0.png
+ * &image=https://www.wearecashcows.com/images/collection/411_0.png
+ * &wallet=0xbF77342243B2f6dfb7a0b37793b0ffdEeF669bb8
+ */
 app.get('/register', async (req, res) => {
   //if no wallet address
-  if (!req.query?.walletAddress) {
-    return res.json({ 
-      error: true, 
-      message: 'Wallet address missing' 
-    });
+  if (!req.query?.wallet) {
+    return res.json({ error: true, message: 'Wallet address missing' });
   //if no images
-  } else if (!req.query?.images 
-    || !Array.isArray(req.query.images)
-    || !req.query.images.length
-  ) {
-    return res.json({ 
-      error: true, 
-      message: 'Images missing' 
-    });
+  } else if (!req.query?.image) {
+    return res.json({ error: true, message: 'Images missing' });
   }
 
-  const images = req.query.images as string[];
-  const walletAddress = String(req.query.walletAddress);
+  const images = Array.isArray(req.query.image) 
+    ? req.query.image as string[]
+    : [ req.query.image ] as string[];
+
+  const walletAddress = String(req.query.wallet);
 
   Consumer.register(walletAddress, images)
     .then(results => res.json({ error: false, results }))
     .catch(error => res.json({ error: true, message: error.message }));
-})
+});
 
+/**
+ * Example: /search?q=pump&limit=10
+ */
 app.get('/search', (req, res) => {
   if (!req.query?.q) return res.json({ 
     error: true, 
@@ -61,8 +64,12 @@ app.get('/search', (req, res) => {
   MemeGenerator.search(req.query)
     .then(results => res.json({ error: false, results }))
     .catch(error => res.json({ error: true, message: error.message }));
-})
+});
 
+/**
+ * Example: /detect
+ * ?url=https://media.tenor.com/XxOtj-aoQeMAAAAC/bodybuilder-bodybuilding.gif
+ */
 app.get('/detect', (req, res) => {
   //if no URL was provided
   if (!req.query?.url) {
@@ -77,8 +84,13 @@ app.get('/detect', (req, res) => {
   MemeGenerator.detect(req.query.url as string)
     .then(results => res.json({ error: false, results }))
     .catch(error => res.json({ error: true, message: error.message })); 
-})
+});
 
+/**
+ * Example: /generate
+ * ?key=0xbF77342243B2f6dfb7a0b37793b0ffdEeF669bb8
+ * ?url=https://media.tenor.com/XxOtj-aoQeMAAAAC/bodybuilder-bodybuilding.gif
+ */
 app.get('/generate', async (req, res) => {
   //if no wallet address was provided
   if (typeof req.query?.key !== 'string') {
@@ -92,19 +104,9 @@ app.get('/generate', async (req, res) => {
 
   const walletAddress = req.query.key as string;
 
-  //check if they have balance
-  if (!(await Consumer.canConsume(walletAddress, service))) {
-    //return error response
-    return res.json({ error: true, message: 'Not enough balance' });
-  }
-
-  MemeGenerator.generate(walletAddress, req.query.url)
-    .then(results => {
-      Consumer.consume(walletAddress, service);
-      return results;
-    })
+  MemeGenerator.generate(walletAddress, req.query.url, service)
     .then(results => res.json({ error: false, results }))
     .catch(error => res.json({ error: true, message: error.message })); 
-})
+});
 
 export default app;

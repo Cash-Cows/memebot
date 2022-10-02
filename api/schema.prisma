@@ -38,6 +38,8 @@ model Source {
   source      String   @db.VarChar(255)
   tags        Json?
   data        Json?
+  up          Int      @default(0)
+  down        Int      @default(0)
   memes       Meme[]
 }
 
@@ -49,6 +51,8 @@ model Meme {
   url         String   @unique @db.VarChar(255)
   cid         String   @unique @db.VarChar(255)
   tags        Json?
+  up          Int      @default(0)
+  down        Int      @default(0)
   sourceId    Int
   consumerId  Int
   source      Source @relation(fields: [sourceId], references: [id])

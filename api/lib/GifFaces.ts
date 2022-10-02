@@ -1,5 +1,7 @@
 //used to get content identfiers of file buffers (sent to db)
 import CID from 'ipfs-only-hash';
+//used to fetch remote gifs
+import fetch from 'node-fetch';
 //the face detection library (latest updated with tensorflow)
 import * as faceapi from '@vladmandic/face-api';
 //split animated gifs into franes

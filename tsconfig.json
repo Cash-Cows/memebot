@@ -3,7 +3,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "lib": ["es2020", "es7", "es6", "dom"],
-    "module": "commonjs",
+    "module": "CommonJS",
     "noUnusedLocals": true,
     "outDir": "dist/",
     "preserveConstEnums": true,

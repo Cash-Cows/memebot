@@ -3,6 +3,17 @@
 
 const hardhat = require('hardhat')
 
+function getRole(name) {
+  if (!name || name === 'DEFAULT_ADMIN_ROLE') {
+    return '0x0000000000000000000000000000000000000000000000000000000000000000';
+  }
+
+  return '0x' + Buffer.from(
+    hardhat.ethers.utils.solidityKeccak256(['string'], [name]).slice(2)
+    , 'hex'
+  ).toString('hex');
+}
+
 async function deploy(name, ...params) {
   //deploy the contract
   const ContractFactory = await hardhat.ethers.getContractFactory(name);

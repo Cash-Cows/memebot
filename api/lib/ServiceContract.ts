@@ -6,6 +6,7 @@ import { ObjectAny } from '../utils/types';
 import Exception from './Exception';
 
 export const BigNumber = ethers.BigNumber;
+export type BigNumber = ethers.BigNumber;
 
 export class ContractAdmin {
   /* Private Properties
@@ -89,8 +90,8 @@ export default class ServiceContract extends ContractAdmin {
   private _abi: ObjectAny[];
   //contract bytecode
   private _bytecode: string;
-  //service rate
-  private _rate: ethers.BigNumber;
+  //contract extra config
+  private _config: ObjectAny;
 
   /* Constructor
   --------------------------------------------------------------------*/
@@ -99,13 +100,13 @@ export default class ServiceContract extends ContractAdmin {
     address: string, 
     abi: ObjectAny[], 
     bytecode: string, 
-    rate: string
+    config: ObjectAny
   ) {
     super();
     this._address = address;
     this._abi = abi;
     this._bytecode = bytecode;
-    this._rate = ethers.BigNumber.from(rate);
+    this._config = config;
   }
 
   /* Getter Methods
@@ -140,6 +141,13 @@ export default class ServiceContract extends ContractAdmin {
   }
 
   /**
+   * Returns the service rate
+   */
+  get config(): ObjectAny {
+    return this._config;
+  }
+
+  /**
    * Returns the network provider
    */
   get provider(): ethers.providers.JsonRpcProvider {
@@ -150,7 +158,7 @@ export default class ServiceContract extends ContractAdmin {
    * Returns the service rate
    */
   get rate(): ethers.BigNumber {
-    return this._rate;
+    return ethers.BigNumber.from(this._config.rate);
   }
 
   /**
@@ -174,12 +182,19 @@ export default class ServiceContract extends ContractAdmin {
    * Service contract factory loader
    */
   public static load(wallet:string|ethers.Wallet, config: ObjectAny) {
-    const { rpc, address, abi, bytecode, rate } = config;
+    const { rpc, address, abi, bytecode } = config;
+    //determine the extra config
+    const extras = Object.assign({}, config);
+    delete extras.rpc;
+    delete extras.address;
+    delete extras.abi;
+    delete extras.bytecode;
+    
     const serviceContract = new ServiceContract(
       address, 
       abi, 
       bytecode, 
-      rate
+      extras
     );
     serviceContract.provider = rpc;
     serviceContract.admin = wallet;

@@ -1,10 +1,12 @@
 {
   "private": true,
   "scripts": {
+    "prisma_migrate": "prisma migrate dev",
+    "prisma_generate": "prisma generate",
     "hardhat_test": "hardhat test",
     "hardhat_compile": "hardhat compile",
-    "api_build": "npx tsc",
-    "api_start": "node dist/index.js"
+    "api_build": "tsc",
+    "api_start": "npx tsc && node dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,6 +32,7 @@
     "ethereum-waffle": "3.4.0",
     "ethers": "5.7.1",
     "express": "^4.17.1",
+    "form-data": "4.0.0",
     "gif-encoder-2": "1.0.5",
     "gifuct-js": "2.1.2",
     "hardhat": "2.4.3",
