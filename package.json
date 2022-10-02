@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "npx tsc && node dist/index.js"
   },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "prisma": {
     "schema": "api/schema.prisma",
     "migrate": "api/migrations"
