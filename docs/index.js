@@ -1,6 +1,9 @@
 window.addEventListener('web3sdk-ready', async _ => {
   //------------------------------------------------------------------//
   // Variables
+  
+  const network = Web3SDK.network('ethereum')
+
   //------------------------------------------------------------------//
   // Functions 
   //------------------------------------------------------------------//
@@ -8,8 +11,12 @@ window.addEventListener('web3sdk-ready', async _ => {
 
   window.addEventListener('web3sdk-connected', async _ => {})
 
-  window.addEventListener('web3sdk-disconnected',  async _ => {
-    window.location.href = './members.html'
+  window.addEventListener('register-click',  async _ => {
+    
+  })
+
+  window.addEventListener('load-click',  async _ => {
+    
   })
 
   //------------------------------------------------------------------//

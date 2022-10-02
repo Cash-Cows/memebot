@@ -35,9 +35,9 @@
           </a>
         </nav>
         <nav class="right">
-          <a class="link" href="./updates.html">Updates</a>
-          <a class="link" href="./gallery.html">Gallery</a>
-          <a class="link" href="./members.html">Members</a>
+          <a class="link" href="/updates.html">Updates</a>
+          <a class="link" href="/gallery.html">Gallery</a>
+          <a class="link" href="/members.html">Members</a>
           <div class="social">
             <a class="link" href="https://twitter.com/WeAreCashCows" target="_blank">
               <img src="/images/twitter-pixel.png" />
@@ -56,21 +56,65 @@
       </div>
     </header>
     <main class="body">
-      <div class="disconnected">
-        <a 
-          class="btn-pixel btn-pixel-large btn-pixel-success" 
-          data-do="connect"
-          data-on="click"
-          href="javascript:void(0)"
-        >Connect Wallet</a>
-      </div>
-      <div class="connected">
-        <section class="section section-1">
-          <h2>Register Images</h2>
-        </section>
-        <section class="section section-1">
-          <h2>Load $MILK</h2>
-        </section>
+      <div class="container">
+        <div class="disconnected">
+          <a 
+            class="btn-pixel btn-pixel-lg btn-pixel-warning" 
+            data-do="connect"
+            data-on="click"
+            href="javascript:void(0)"
+          >Connect Wallet</a>
+        </div>
+        <div class="connected hide">
+          <section class="section section-1">
+            <h2>Register Images</h2>
+            <div class="form">
+              <div class="form-row">
+                <label>Attributes</label>
+                <div 
+                  class="form-field field-attribute" 
+                  data-do="field-attribute"
+                >
+                  <a 
+                    class="btn btn-outline btn-secondary add"
+                    href="javascript:void(0)"
+                  >
+                    Add Attribute
+                  </a>
+                </div>
+              </div>
+              <div class="form-row">
+                <button 
+                  class="btn btn-solid btn-large btn-primary" 
+                  data-do="register" 
+                  data-on="click"
+                >
+                  Register
+                </button>
+              </div>
+            </div>
+          </section>
+          <section class="section section-2">
+            <h2>Load $MILK</h2>
+            <div class="form">
+              <div class="form-row">
+                <label>Amount</label>
+                <div class="form-field">
+                  <input id="field-amount" class="form-control" type="number" min="0" step="1" />
+                </div>
+              </div>
+              <div class="form-row">
+                <button 
+                  class="btn btn-solid btn-large btn-primary" 
+                  data-do="load" 
+                  data-on="click"
+                >
+                  Load
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
     <footer class="foot"></footer>
