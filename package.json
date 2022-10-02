@@ -5,6 +5,8 @@
     "prisma_generate": "prisma generate",
     "hardhat_test": "hardhat test",
     "hardhat_compile": "hardhat compile",
+    "api_build": "tsc",
+    "api_start": "npx tsc && node dist/index.js",
     "build": "tsc",
     "start": "npx tsc && node dist/index.js"
   },
