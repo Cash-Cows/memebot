@@ -24,8 +24,8 @@ model Search {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  query     String   @unique @db.VarChar(255)
-  results   Json
+  request   String   @unique @db.VarChar(255)
+  response  Json
 }
 
 model Source {

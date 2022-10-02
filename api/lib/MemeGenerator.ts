@@ -14,18 +14,23 @@ import {
   SearchResult,
   SearchResponse,
   ObjectAny,
-  CanvasImage
+  CanvasImage,
+  Direction
 } from '../utils/types';
 //canvas node polyfills
 import { Image } from '../utils/canvas';
 //meme table ORM (mysql)
-import { prisma, Prisma, Source, Consumer } from '../utils/prisma';
+import { prisma, Source, Consumer, Meme } from '../utils/prisma';
 //expressive error reporting pattern
 import Exception from './Exception';
 //used to detect faces
 import GifFaces from './GifFaces';
 //used in generate to conume the tokens
 import ServiceContract, { BigNumber } from './ServiceContract';
+//used to get consumer info and balances
+import ConsumerModel from './Consumer';
+//used to get source info
+import SourceModel from './Source';
 
 const { TENOR_KEY, INFURA_API_KEY, INFURA_API_SECRET } = process.env;
 
@@ -34,9 +39,200 @@ export default class MemeGenerator {
   --------------------------------------------------------------------*/
 
   /**
+   * Detects faces in gif urls and caches it
+   */
+  public static async detect(source: string|Source) {
+    //load gif face detect
+    const gifFaces = new GifFaces();
+    //determine the URL
+    const url: string = typeof source === 'string' ? source: source.url;
+
+    //make sure we have a source (wether found or created)
+    //if source is the url
+    if (typeof source === 'string') {
+      //check if the source exists
+      const sourceFromURL = await SourceModel.get(url);
+      //if a source was found
+      if (sourceFromURL) {
+        source = sourceFromURL;
+      } else {
+        await gifFaces.setBufferFromURL(url);
+        //make sure there is a CID
+        source = await SourceModel.makeFromCID(url, gifFaces.cid);
+      }
+    }
+
+    //if there is already data to this source
+    if (source.data) {
+      //send the entire source (CID included)
+      return await SourceModel.addCID(source);
+    }
+
+    //if no cid (means there's no buffer)
+    if (!gifFaces.cid?.length) {
+      //load the buffer and cid
+      await gifFaces.setBufferFromURL(url);
+    }
+
+    //detect faces
+    const faces = await gifFaces.detect();
+
+    //update the source
+    return await SourceModel.detect(url, faces, gifFaces.cid);
+  }
+
+  /**
+   * Returns meme info given the url
+   */
+  public static async get(id: number|string) {
+    const where: ObjectAny = {};
+    if (typeof id === 'string') {
+      where.url = id;
+    } else {
+      where.id = id
+    }
+    return await prisma.meme.findUnique({ where });
+  }
+
+  /**
+   * Returns meme info given the url
+   */
+  public static async getOrThrow(id: number|string) {
+    const where: ObjectAny = {};
+    if (typeof id === 'string') {
+      where.url = id;
+    } else {
+      where.id = id
+    }
+    return await prisma.meme.findUniqueOrThrow({ where });
+  }
+
+  /**
+   * Generates custom faces on top of gif memes
+   */
+  public static async generate(
+    consumer: string|Consumer, 
+    source: string|Source,
+    service: ServiceContract
+  ) {
+    //get the consumer
+    if (typeof consumer === 'string') {
+      consumer = await ConsumerModel.getOrThrow(consumer);
+    }
+    //get the source
+    if (typeof source === 'string') {
+      source = await SourceModel.getOrThrow(source);
+    }
+    //check if sourceId already exists in meme
+    const exists = await prisma.meme.findFirst({ where: { 
+      consumerId: consumer.id, 
+      sourceId: source.id 
+    }});
+    //if it does exists
+    if (exists) {
+      //then no need to do anything else
+      return exists;
+    }
+    //make sure the consumer has images
+    if (!Array.isArray(consumer.images) || !consumer.images.length) {
+      throw Exception.for('Consumer has no images');
+    } 
+    
+    //get the total balance from the blockchain
+    const totalBalance = await service.balanceOf(consumer.walletAddress);
+    if (!(await this._canConsume(consumer, totalBalance, service.rate))) {
+      throw Exception.for('Not enough balance');
+    }
+
+    //start generating
+    const animation = await this._generate(consumer, source);
+    const animationBuffer = animation.out.getData();
+    const animationCID = await this._upload(animationBuffer);
+
+    //now consume it
+    await ConsumerModel.consume(consumer.walletAddress, BigNumber
+      .from(consumer.consumed)
+      .add(service.rate)
+      .toString() 
+    );
+
+    return await prisma.meme.create({ 
+      data: {
+        description: source.description,
+        url: `${service.config.ipfs}/ipfs/${animationCID}`,
+        cid: animationCID,
+        tags: (source.tags as string[]) || [],
+        sourceId: source.id,
+        consumerId: consumer.id
+      }
+    });
+  }
+
+  /**
+   * Generates one meme given search terms. Memes in this method are 
+   * never returned twice..
+   */
+  public static async generateOne(
+    consumer: string|Consumer, 
+    query: ObjectAny,
+    service: ServiceContract,
+    limit: number = 10
+  ): Promise<Meme|null> {
+    //get the consumer
+    if (typeof consumer === 'string') {
+      consumer = await ConsumerModel.getOrThrow(consumer);
+    }
+    //make sure a limit is set
+    query.limit = query.limit || limit;
+  
+    const search = await this.search(query, true);
+    //find sources that match this query
+    const sources = await SourceModel.findAll(search.request);
+
+    //loop through all the sources and look for one without data
+    for (const source of sources) {
+      if (source.data) {
+        continue
+      }
+  
+      //found one without data
+  
+      //detect faces
+      const sourceWithFaces = await this.detect(source);
+
+      try {//to generate meme
+        return await this.generate(
+          consumer, 
+          sourceWithFaces, 
+          service
+        );
+      } catch(e) {
+        //it could fail if
+        // - No faces were detected
+        // - Frames length does not match source data length
+      }
+    }
+    //did not find any with data
+
+    //queue the next one
+    const response = search.response as SearchResponse; 
+
+    //if no results or no more next or next is the same
+    if (!response.results?.length 
+      || !response.next?.length
+      || query.next == response.next
+    ) {
+      return null;
+    }
+
+    query.next = response.next;
+    return await this.generateOne(consumer, query, service);
+  }
+
+  /**
    * Searches for memes from tenor and caches it
    */
-  public static async search(query: ObjectAny) {
+  public static async search(query: ObjectAny, wait = false) {
     //get query
     const search = new URLSearchParams({
       ...{ limit: '10' }, 
@@ -50,7 +246,7 @@ export default class MemeGenerator {
 
     //get the results
     const results = await prisma.search.findUnique({ 
-      where: { query: url } 
+      where: { request: url } 
     });
     //if there are results
     if (results) {
@@ -66,7 +262,13 @@ export default class MemeGenerator {
     //if there is no results
     } else if (!tenorResponse.results?.length) {
       //tenor might have results later in time...
-      return [];
+      return { 
+        request: url, 
+        response: {
+          results: [],
+          next: ''
+        } 
+      };
     }
 
     //format search results
@@ -91,123 +293,45 @@ export default class MemeGenerator {
     };
 
     //for the row data
-    const data = { query: url, results: searchResponse };
+    const data = { request: url, response: searchResponse };
     
     //create a search item (we dont need to wait for this)
-    prisma.search.create({ data }).then(async _ => {
-      //prepare source rows for insertion
-      const rows: Prisma.SourceCreateInput[] = [];
-      for (const row of searchResults) {
-        rows.push({
-          description: row.description,
-          url: row.url,
-          source: url,
-          tags: row.tags
-        });
-      }
-      //create many source rows
-      await prisma.source.createMany({ data: rows});
-    });
+    if (wait) {
+      await prisma.search.create({ data });
+      await SourceModel.cache(url, searchResults);
+    } else {
+      prisma.search.create({ data }).then(async _ => {
+        await SourceModel.cache(url, searchResults);
+      });
+    }
 
     //set the json response
     return data;
   }
 
   /**
-   * Detects faces in gif urls and caches it
+   * Upates the CID of a source, if it's not already set
    */
-  public static async detect(url: string) {
-    //check if the source exists
-    const sourceFromURL = await prisma.source.findUnique({ 
-      where: { url } 
-    });
-    //if there is already data to this source
-    if (sourceFromURL?.data) {
-      //send the entire source
-      return await this._updateSourceCID(sourceFromURL) ;
-    }
-
-    const gifFaces = new GifFaces();
-    await gifFaces.setBufferFromURL(url);
-    
-    //get source
-    const source = await this._getSourceFromCID(url, gifFaces.cid);
-    //detect faces
-    const faces = await gifFaces.detect();
-    //if no faces
-    if (!faces.length) {
-      throw Exception.for('No faces found');
-    }
-
-    //update the source
-    const results = await prisma.source.update({
-      where: { id: source.id },
-      data: { data: faces }
-    });
-
-    return results;  
-  }
-
-  /**
-   * Generates custom faces on top of gif memes
-   */
-  public static async generate(
-    walletAddress: string, 
-    sourceURL: string,
-    service: ServiceContract
+  public static async vote(
+    meme: number|string|Meme, 
+    direction: Direction
   ) {
-    //get the consumer
-    const consumer = await prisma.consumer.findUniqueOrThrow(
-      { where: { walletAddress }}
-    );
-
-    //get the source
-    const source = await prisma.source.findUniqueOrThrow(
-      { where: { url: sourceURL }}
-    );
-    //if the source data is invalid
-    if (!Array.isArray(source.data) || !source.data.length) {
-      throw Exception.for('Invalid source');
-    }
-    //check if sourceId already exists in meme
-    const exists = await prisma.meme.findFirst({ where: { 
-      consumerId: consumer.id, 
-      sourceId: source.id 
-    }});
-    //if it does exists
-    if (exists) {
-      //then no need to do anything else
-      //return exists;
-    }
-    //make sure the consumer has images
-    if (!Array.isArray(consumer.images) || !consumer.images.length) {
-      throw Exception.for('Consumer has no images');
-    } 
-    
-    //get the total balance from the blockchain
-    const totalBalance = await service.balanceOf(walletAddress);
-    if (!(await this._canConsume(consumer, totalBalance, service.rate))) {
-      throw Exception.for('Not enough balance');
+    //if source is a string
+    if (typeof meme === 'string' || typeof meme === 'number') {
+      //get source by url
+      meme = await this.getOrThrow(meme);
     }
 
-    //start generating
-    const animation = await this._generate(consumer, source);
-    const animationBuffer = animation.out.getData();
-    const animationCID = await this._upload(animationBuffer);
+    const data: ObjectAny = {};
+    if (direction == Direction.Up) {
+      data.up = meme.up + 1;
+    } else if (direction == Direction.Down) {
+      data.down = meme.down + 1;
+    }
 
-    //now consume it
-    await this._consume(consumer, totalBalance, service.rate);
-
-    return await prisma.meme.create({ 
-      data: {
-        description: source.description,
-        url: `${service.config.ipfs}/ipfs/${animationCID}`,
-        cid: animationCID,
-        tags: (source.tags as string[]) || [],
-        sourceId: source.id,
-        consumerId: consumer.id
-      }
-    });
+    //vote now
+    await SourceModel.vote(meme.sourceId, direction);
+    return await prisma.meme.update({ where: { id: meme.id }, data });
   }
 
   /* Private Static Methods
@@ -231,24 +355,23 @@ export default class MemeGenerator {
   }
 
   /**
-   * Consumes the service
+   * Returns an Image given an index and a list of image urls
    */
-  private static async _consume(
-    consumer: Consumer, 
-    totalBalance: BigNumber,
-    rate: BigNumber
-  ) {
-    return await prisma.consumer.update({
-      where: { walletAddress: consumer.walletAddress },
-      data: { 
-        consumed: BigNumber
-          .from(consumer.consumed)
-          .add(rate)
-          .toString() 
-      }
-    });
+  private static _chooseImage(
+    images: string[], 
+    index: number
+  ): Promise<Image> {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = e => reject(e);
+      image.src = images[index % images.length];
+    })
   }
 
+  /**
+   * Draws a face on the given canvas
+   */
   private static _drawFace(
     canvasImage: CanvasImage, 
     image: Image, 
@@ -261,6 +384,9 @@ export default class MemeGenerator {
     );
   }
 
+  /**
+   * Draws a frame on the given canvas
+   */
   private static _drawFrame(canvasImage: CanvasImage, frame: Frame) {
     const { top, left } = frame.dims
     // set the patch data as an override
@@ -283,7 +409,7 @@ export default class MemeGenerator {
   private static async _generate(consumer: Consumer, source: Source) {
     //if the source data is invalid
     if (!Array.isArray(source.data) || !source.data.length) {
-      throw Exception.for('Invalid source');
+      throw Exception.for('No faces were detected');
     }
   
     const consumerImages = consumer.images as string[];
@@ -305,7 +431,7 @@ export default class MemeGenerator {
       const faces = source.data[i] as Box[];
       for (let j = 0; j < faces.length; j++) {
         //pick a face
-        const face = await this._getModImage(consumerImages, j);
+        const face = await this._chooseImage(consumerImages, j);
         //draw the face
         this._drawFace(canvasImage, face, faces[j]);
       }
@@ -317,74 +443,6 @@ export default class MemeGenerator {
     animation.finish();
 
     return animation;
-  }
-
-  /**
-   * Returns an Image given an index and a list of image urls
-   */
-  private static _getModImage(
-    images: string[], 
-    index: number
-  ): Promise<Image> {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = e => reject(e);
-      image.src = images[index % images.length];
-    })
-  }
-
-  /**
-   * Returns the source given the CID. If none exists, it will create one
-   */
-  private static async _getSourceFromCID(
-    url: string, 
-    cid: string
-  ): Promise<Source> {
-    //check if the source exists
-    const source = await prisma.source.findUnique({ 
-      where: { cid: cid } 
-    });
-  
-    //if there is already data to this source
-    if (source) {
-      //send the entire source
-      return source;
-    }
-  
-    //let's create a source for this url
-    return await prisma.source.upsert({
-      where: { url }, 
-      update: { cid },
-      create: {
-        url,
-        cid,
-        description: '',
-        source: '',
-        tags: []
-      }
-    });
-  }
-  
-  /**
-   * Upates the CID of a source, if it's not already set
-   */
-  private static async _updateSourceCID(source: Source): Promise<Source> {
-    //if there's already a CID
-    if (source.cid) {
-      return source;
-    }
-  
-    //load the url into a buffer
-    const response = await fetch(source.url);
-    const buffer = Buffer.from(await response.arrayBuffer()); 
-    //get cid
-    const cid = await GifFaces.getCID(buffer);
-    //add the cid
-    return await prisma.source.update({
-      where: { id: source.id },
-      data: { cid: cid }
-    })
   }
 
   /**

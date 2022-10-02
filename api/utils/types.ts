@@ -73,3 +73,5 @@ export type SearchResponse = {
 };
 
 export type TX = { tx: string };
+
+export enum Direction { Up, Down };
