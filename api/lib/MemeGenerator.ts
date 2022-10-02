@@ -9,10 +9,12 @@ import GIFEncoder from 'gif-encoder-2';
 //centralized type defs
 import {
   Box,
+  Frame,
   TenorResponse,
   SearchResult,
   SearchResponse,
-  ObjectAny
+  ObjectAny,
+  CanvasImage
 } from '../utils/types';
 //canvas node polyfills
 import { Image } from '../utils/canvas';
@@ -175,7 +177,7 @@ export default class MemeGenerator {
     //if it does exists
     if (exists) {
       //then no need to do anything else
-      return exists;
+      //return exists;
     }
     //make sure the consumer has images
     if (!Array.isArray(consumer.images) || !consumer.images.length) {
@@ -184,7 +186,7 @@ export default class MemeGenerator {
     
     //get the total balance from the blockchain
     const totalBalance = await service.balanceOf(walletAddress);
-    if (await this._canConsume(consumer, totalBalance, service.rate)) {
+    if (!(await this._canConsume(consumer, totalBalance, service.rate))) {
       throw Exception.for('Not enough balance');
     }
 
@@ -199,7 +201,7 @@ export default class MemeGenerator {
     return await prisma.meme.create({ 
       data: {
         description: source.description,
-        url: `${service.config.host}/ipfs/${animationCID}`,
+        url: `${service.config.ipfs}/ipfs/${animationCID}`,
         cid: animationCID,
         tags: (source.tags as string[]) || [],
         sourceId: source.id,
@@ -247,6 +249,26 @@ export default class MemeGenerator {
     });
   }
 
+  private static _drawFace(
+    canvasImage: CanvasImage, 
+    image: Image, 
+    face: Box
+  ) {
+    const { width: iWidth, height: iHeight } = image;
+    const { x, y, width, height } = face;
+    canvasImage.context.drawImage(
+      image, 0, 0, iWidth, iHeight, x, y, width, height
+    );
+  }
+
+  private static _drawFrame(canvasImage: CanvasImage, frame: Frame) {
+    const { top, left } = frame.dims
+    // set the patch data as an override
+    canvasImage.image.data.set(frame.patch);
+    // draw the patch back over the canvas
+    canvasImage.context.putImageData(canvasImage.image, top, left);
+  }
+
   /**
    * Returns the JSON results of a url call
    */
@@ -255,6 +277,9 @@ export default class MemeGenerator {
     return response.json();
   }
 
+  /**
+   * Generates the meme
+   */
   private static async _generate(consumer: Consumer, source: Source) {
     //if the source data is invalid
     if (!Array.isArray(source.data) || !source.data.length) {
@@ -276,18 +301,13 @@ export default class MemeGenerator {
 
     for(let i = 0; i < frames.length; i++) {
       const frame = frames[i];
+      this._drawFrame(canvasImage, frame);
       const faces = source.data[i] as Box[];
       for (let j = 0; j < faces.length; j++) {
-        //pick an image
-        const consumerImage = await this._getModImage(consumerImages, j);
-        canvasImage.canvas.getContext('2d').drawImage(
-          consumerImage, 
-          0, 0, consumerImage.width, consumerImage.height,
-          faces[j].x,
-          faces[j].y,
-          faces[j].width,
-          faces[j].height
-        )
+        //pick a face
+        const face = await this._getModImage(consumerImages, j);
+        //draw the face
+        this._drawFace(canvasImage, face, faces[j]);
       }
 
       animation.setDelay(frame.delay || 0);

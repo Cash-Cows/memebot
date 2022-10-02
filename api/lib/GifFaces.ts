@@ -216,13 +216,13 @@ export class GifFacesUtils {
    * Draws the given frame into the given CanvasImage
    */
   private static _drawPatch(previous: CanvasImage, frame: Frame) {
-    const { top, left } = frame.dims
+    const { top, left } = frame.dims;
   
     // set the patch data as an override
-    previous.image.data.set(frame.patch)
+    previous.image.data.set(frame.patch);
   
     // draw the patch back over the canvas
-    previous.context.putImageData(previous.image, top, left)
+    previous.context.putImageData(previous.image, top, left);
   }
   
   /**
