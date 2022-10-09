@@ -3,7 +3,7 @@ on:
      branches:
        - main
 
-name: Distribute code to artengine, contracts, website
+name: Distribute code to readonly repos
 
 jobs:
   copy-file:
