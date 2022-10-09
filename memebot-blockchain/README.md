@@ -1,13 +1,6 @@
-# Memebot
+# Memebot Contract
 
-AI powered meme generator service. Detects faces in animated GIFs and 
-replaces with a provided image.
-
- - Face Detection
- - Animated GIF parsing/encoding
- - Infura IPFS uploading
- - Blockchain Smart Contract interaction
- - Consumes ERC20 token for service 
+This allows the sending of $MILK that can be read by the meme generator.
 
 ## About Cash Cows
 
