@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "lib": ["es2020", "es7", "es6", "dom"],
+    "module": "CommonJS",
+    "noUnusedLocals": true,
+    "outDir": "build",
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "sourceMap": false,
+    "strict": true,
+    "target": "es6",
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false,
+    "resolveJsonModule": true
+  },
+  "include": [ "source" ],
+  "exclude": [
+    "build",
+    "models",
+    "migrations",
+    "node_modules",
+    "public",
+    "scripts"
+  ]
+}
