@@ -24,3 +24,29 @@ jobs:
         user_name: 'Cowveloper'
         commit_message: "Syncing memebot-server"
         git_server: 'github.com'
+
+    # Copy the blockchain folder
+    - name: Push to memebot-blockchain
+      uses: cash-cows/workflows@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source_folder: 'memebot-blockchain' # Folder to copy
+        destination_repo: 'Cash-Cows/memebot-blockchain' # Target repo
+        user_email: 'moo@wearecashcows.com'
+        user_name: 'Cowveloper'
+        commit_message: "Syncing memebot-blockchain"
+        git_server: 'github.com'
+
+    # Copy the discord folder
+    - name: Push to memebot-discord
+      uses: cash-cows/workflows@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source_folder: 'memebot-discord' # Folder to copy
+        destination_repo: 'Cash-Cows/memebot-discord' # Target repo
+        user_email: 'moo@wearecashcows.com'
+        user_name: 'Cowveloper'
+        commit_message: "Syncing memebot-discord"
+        git_server: 'github.com'
