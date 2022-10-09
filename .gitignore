@@ -103,17 +103,17 @@ dist
 # TernJS port file
 .tern-port
 
-.gcp.json
+.DS_Store
 
-api/migrations
+memebot-blockchain/cache
+memebot-blockchain/artifacts/@openzeppelin
+memebot-blockchain/artifacts/build-info
+memebot-blockchain/artifacts/hardhat
+memebot-blockchain/artifacts/contracts/mock
 
 *.dbg.json
 
-chain/cache
-chain/artifacts/@openzeppelin
-chain/artifacts/build-info
-chain/artifacts/erc721b
-chain/artifacts/hardhat
-chain/artifacts/contracts/mock
-
+Session.vim
+.editorconfig
+*keypair.json
 archives

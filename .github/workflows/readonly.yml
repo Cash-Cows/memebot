@@ -1,0 +1,26 @@
+on:
+  push:
+     branches:
+       - main
+
+name: Distribute code to artengine, contracts, website
+
+jobs:
+  copy-file:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Copy the server folder
+    - name: Push to memebot-server
+      uses: cash-cows/workflows@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source_folder: 'memebot-server' # Folder to copy
+        destination_repo: 'Cash-Cows/memebot-server' # Target repo
+        user_email: 'moo@wearecashcows.com'
+        user_name: 'Cowveloper'
+        commit_message: "Syncing memebot-server"
+        git_server: 'github.com'
