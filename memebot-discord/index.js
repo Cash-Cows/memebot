@@ -18,10 +18,10 @@ const discord_api = axios.create({
   baseURL: 'https://discord.com/api/',
   timeout: 3000,
   headers: {
-	"Access-Control-Allow-Origin": "*",
-	"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-	"Access-Control-Allow-Headers": "Authorization",
-	"Authorization": `Bot ${TOKEN}`
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+	'Access-Control-Allow-Headers': 'Authorization',
+	'Authorization': `Bot ${TOKEN}`
   }
 });
 
@@ -71,14 +71,14 @@ app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async (req, res) => {
 app.get('/register_commands', async (req,res) =>{
   let slash_commands = [
     {
-      "name": "yo",
-      "description": "replies with Yo!",
-      "options": []
+      'name': 'yo',
+      'description': 'replies with Yo!',
+      'options': []
     },
     {
-      "name": "dm",
-      "description": "sends user a DM",
-      "options": []
+      'name': 'dm',
+      'description': 'sends user a DM',
+      'options': []
     }
   ]
   try {
