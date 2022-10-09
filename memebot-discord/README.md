@@ -6,7 +6,7 @@ Navigate to Discord's developer portal and create a new application
  - https://discord.com/developers/applications
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/1.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/1.png"  width="500px"/>
 </p>
 
 ### **2.** Get application keys and parameters
@@ -19,7 +19,7 @@ Retrieve:
 Configure your Cyclic App with these environment variables.
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/2.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/2.png"  width="500px"/>
 </p>
 
 ### **3.** Enable the Bot in the application
@@ -28,7 +28,7 @@ On the left hand side, go to `Bot` then click on `Add Bot`
 You will need to create the bot token. 
 Press `Reset Token` and confirm.
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/3.png"  width="400px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/3.png"  width="400px"/>
 </p>
 
 
@@ -43,7 +43,7 @@ Go to `OAuth2` > `URL Generator` on the left, select the permissions:
   - `Send Messages` - to allow the bot to send messages 
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/4.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/4.png"  width="500px"/>
 </p>
 
 Copy and navigate to the generated URL at the bottom. 
@@ -51,12 +51,12 @@ Copy and navigate to the generated URL at the bottom.
 The page will ask you to select a server to install your bot on, it will go through a few prompts to verify that you are human. 
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/5.png"  width="400px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/5.png"  width="400px"/>
 </p>
 
 After you authorize, the bot will appear in your server.
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/6.png"  width="400px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/6.png"  width="400px"/>
 </p>
 
 **Keep in mind, the bot does not yet have any code running, so it will not do anything just yet**
@@ -66,12 +66,12 @@ After you authorize, the bot will appear in your server.
 ### **5.** Get your Server ID
 To get the server id (Discord also calls this GUILD ID), you first have to enable developer mode for in your discord user settings > advanced:
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/0.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/0.png"  width="500px"/>
 </p>
 
 With developer mode on, you will be able to right click the discord server name to copy it's id:
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/7.png"  width="200px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/7.png"  width="200px"/>
 </p>
 
 Developer mode allows you to right click all kinds of things in discord to get their id's (channels, users, messages, etc.)
@@ -85,14 +85,14 @@ At this point, make sure you've collected all the variables you will use in your
 - GUILD_ID (same as Server ID)
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/8.png"  width="600px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/8.png"  width="600px"/>
 </p>
 
 # Set up interactions endpoint
 **This step is VERY IMPORTANT**, it lets discord know the url at which the bot is running. Discord will send interaction event payloads to this endpoint.
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/9.png"  width="600px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/9.png"  width="600px"/>
 </p>
 
 When you first enter the endpoint into the ui, discord will make a cryptographically signed request to your endpoint and expect you to verify the signature. This will establish trust between discord and your hosted bot.
@@ -122,7 +122,7 @@ After registering commands, you should see them available in your discord server
 
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/10.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/10.png"  width="500px"/>
 </p>
 
 # Try the bot!
@@ -133,13 +133,13 @@ NOTE: this starter does not configure
 
 ## `/yo`
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/12.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/12.png"  width="500px"/>
 </p>
 
 ## `/dm`
 
 <p align="center">
-    <img src="https://github.com/cyclic-software/starter-discord-bot/tree/main/doc/11.png"  width="500px"/>
+    <img src="https://raw.githubusercontent.com/cyclic-software/starter-discord-bot/main/doc/11.png"  width="500px"/>
 </p>
 
 ## About Cash Cows
