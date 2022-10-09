@@ -25,9 +25,6 @@ const discord_api = axios.create({
   }
 });
 
-
-
-
 app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async (req, res) => {
   const interaction = req.body;
 
