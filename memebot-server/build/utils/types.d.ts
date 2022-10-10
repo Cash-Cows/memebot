@@ -70,3 +70,8 @@ export declare enum Direction {
     Up = 0,
     Down = 1
 }
+export declare type IPFSResponse = {
+    Name: string;
+    Hash: string;
+    Size: string;
+};

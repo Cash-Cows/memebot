@@ -13,7 +13,9 @@ import {
   TenorResponse,
   SearchResult,
   SearchResponse,
+  IPFSResponse,
   ObjectAny,
+  ObjectString,
   CanvasImage,
   Direction
 } from '../utils/types';
@@ -133,6 +135,7 @@ export default class MemeGenerator {
       //then no need to do anything else
       return exists;
     }
+    
     //make sure the consumer has images
     if (!Array.isArray(consumer.images) || !consumer.images.length) {
       throw Exception.for('Consumer has no images');
@@ -143,9 +146,9 @@ export default class MemeGenerator {
     if (!(await this._canConsume(consumer, totalBalance, service.rate))) {
       throw Exception.for('Not enough balance');
     }
-
+    
     //start generating
-    const cid = await this._upload(
+    const file = await this._upload(
       await this._generate(consumer, source)
     );
 
@@ -159,8 +162,8 @@ export default class MemeGenerator {
     return await prisma.meme.create({ 
       data: {
         description: source.description,
-        url: `${service.config.ipfs}/ipfs/${cid}`,
-        cid: cid,
+        url: `${service.config.ipfs}/ipfs${file.path}`,
+        cid: file.cid,
         tags: (source.tags as string[]) || [],
         sourceId: source.id,
         consumerId: consumer.id
@@ -444,13 +447,13 @@ export default class MemeGenerator {
   /**
    * Uploads animation to Infura IPFS
    */
-  private static _upload(animation: GIFEncoder): Promise<string> {
+  private static _upload(animation: GIFEncoder): Promise<ObjectString> {
     return new Promise((resolve, reject) => {
       //make a form
       const form = new FormData();
-      form.append('file', Readable.from(animation.out.getData()));
+      form.append('file', Readable.from(animation.out.getData()), 'meme.gif');
       //upload animation to CDN/IPFS
-      fetch(`https://ipfs.infura.io:5001/api/v0/add`, {
+      fetch(`https://ipfs.infura.io:5001/api/v0/add?wrap-with-directory=true`, {
         method: 'POST',
         headers: { 
           ...form.getHeaders(), 
@@ -462,7 +465,16 @@ export default class MemeGenerator {
         },
         body: form
       })
-      .then(response => response.json().then(json => resolve(json.Hash)))
+      .then(response => response.text().then(text => {
+        const json: IPFSResponse[] = JSON.parse(`[${
+          text.replace("}\n{", '},{').trim()
+        }]`);
+        
+        resolve({
+          cid: json[0].Hash,
+          path: `/${json[1].Hash}/${json[0].Name}` 
+        });
+      }))
       .catch(error => reject(error));
     });
   }

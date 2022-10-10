@@ -110,12 +110,15 @@ emitter.on('meme', async function(req, res, interaction) {
     interaction.member.user.username
   }. This might take a few min...`);
 
+  const options = toOptionsHash(interaction.data.options);
+
   //make url parameters
   const params = new URLSearchParams();
-  params.append('q', interaction.data.options[0].value);
+  params.append('q', options.query);
   params.append('key', interaction.member.user.id);
-  params.append('key', interaction.member.user.id);
-  //params.append('skip', '0');
+  if (options.next) {
+    params.append('skip', options.next);
+  }
 
   //make the api call
   const response = await tryTo(async () => {

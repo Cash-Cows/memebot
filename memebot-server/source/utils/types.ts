@@ -75,3 +75,9 @@ export type SearchResponse = {
 export type TX = { tx: string };
 
 export enum Direction { Up, Down };
+
+export type IPFSResponse = {
+  Name: string,
+  Hash: string,
+  Size: string
+};

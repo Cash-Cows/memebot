@@ -76,10 +76,13 @@ emitter.on('meme', function (req, res, interaction) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         (0, boot_1.reply)(res, `Generating "${interaction.data.options[0].value}" for ${interaction.member.user.username}. This might take a few min...`);
+        const options = (0, boot_1.toOptionsHash)(interaction.data.options);
         const params = new URLSearchParams();
-        params.append('q', interaction.data.options[0].value);
+        params.append('q', options.query);
         params.append('key', interaction.member.user.id);
-        params.append('key', interaction.member.user.id);
+        if (options.next) {
+            params.append('skip', options.next);
+        }
         const response = yield (0, boot_1.tryTo)(() => __awaiter(this, void 0, void 0, function* () {
             return yield boot_1.api.get(`/discord/search?${params.toString()}`);
         }));

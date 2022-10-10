@@ -97,7 +97,7 @@ class MemeGenerator {
             if (!(yield this._canConsume(consumer, totalBalance, service.rate))) {
                 throw Exception_1.default.for('Not enough balance');
             }
-            const cid = yield this._upload(yield this._generate(consumer, source));
+            const file = yield this._upload(yield this._generate(consumer, source));
             yield Consumer_1.default.consume(consumer.walletAddress, ServiceContract_1.BigNumber
                 .from(consumer.consumed)
                 .add(service.rate)
@@ -105,8 +105,8 @@ class MemeGenerator {
             return yield prisma_1.prisma.meme.create({
                 data: {
                     description: source.description,
-                    url: `${service.config.ipfs}/ipfs/${cid}`,
-                    cid: cid,
+                    url: `${service.config.ipfs}/ipfs${file.path}`,
+                    cid: file.cid,
                     tags: source.tags || [],
                     sourceId: source.id,
                     consumerId: consumer.id
@@ -280,15 +280,21 @@ class MemeGenerator {
     static _upload(animation) {
         return new Promise((resolve, reject) => {
             const form = new form_data_1.default();
-            form.append('file', stream_1.Readable.from(animation.out.getData()));
-            (0, node_fetch_1.default)(`https://ipfs.infura.io:5001/api/v0/add`, {
+            form.append('file', stream_1.Readable.from(animation.out.getData()), 'meme.gif');
+            (0, node_fetch_1.default)(`https://ipfs.infura.io:5001/api/v0/add?wrap-with-directory=true`, {
                 method: 'POST',
                 headers: Object.assign(Object.assign({}, form.getHeaders()), { authorization: `Basic ${Buffer
                         .from(`${INFURA_API_KEY}:${INFURA_API_SECRET}`)
                         .toString('base64')}` }),
                 body: form
             })
-                .then(response => response.json().then(json => resolve(json.Hash)))
+                .then(response => response.text().then(text => {
+                const json = JSON.parse(`[${text.replace("}\n{", '},{').trim()}]`);
+                resolve({
+                    cid: json[0].Hash,
+                    path: `/${json[1].Hash}/${json[0].Name}`
+                });
+            }))
                 .catch(error => reject(error));
         });
     }
