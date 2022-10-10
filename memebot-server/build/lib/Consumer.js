@@ -62,7 +62,7 @@ class Consumer {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.prisma.consumer.upsert({
                 where: { walletAddress },
-                update: { images },
+                update: { images, discordId },
                 create: { walletAddress, images, discordId }
             });
         });

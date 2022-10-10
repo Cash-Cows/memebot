@@ -86,7 +86,7 @@ export default class Consumer {
   ) {
     return await prisma.consumer.upsert({
       where: { walletAddress },
-      update: { images },
+      update: { images, discordId },
       create: { walletAddress, images, discordId }
     })
   }
