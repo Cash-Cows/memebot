@@ -181,7 +181,7 @@ app.get('/api/discord/search', (req, res) => __awaiter(void 0, void 0, void 0, f
     const key = id.indexOf('0x') === 0 ? 'walletAddress' : 'discordId';
     let consumer;
     try {
-        consumer = yield Consumer_1.default.getOrThrow(id, key);
+        consumer = yield Consumer_1.default.getWithBalance(id, key, service);
     }
     catch (error) {
         return res.json({ error: true, message: 'Invalid API Key' });

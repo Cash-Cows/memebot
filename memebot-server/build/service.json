@@ -4,7 +4,7 @@
     "scanner": "https://etherscan.io",
     "ipfs": "https://ccmemebot.infura-ipfs.io",
     "address": "0x43F3aF921385969cf4Dc535a31A23CE142092E81",
-    "rate": "100000000000000000000",
+    "rate": "10000000000000000000",
     "abi": [
         {
             "inputs": [

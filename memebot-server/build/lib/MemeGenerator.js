@@ -131,6 +131,9 @@ class MemeGenerator {
                     return yield this.generate(consumer, source, service);
                 }
                 catch (e) {
+                    if (e instanceof Error && e.message === 'Not enough balance') {
+                        throw new Error('Not enough balance');
+                    }
                 }
             }
             return yield this.generateOne(consumer, query, service, skip + range, range);
@@ -215,7 +218,7 @@ class MemeGenerator {
             return parseInt(totalBalance
                 .sub(ServiceContract_1.BigNumber.from(consumer.consumed))
                 .sub(rate)
-                .toString()) > 0;
+                .toString()) >= 0;
         });
     }
     static _chooseImage(images, index) {

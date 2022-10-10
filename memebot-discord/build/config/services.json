@@ -1,0 +1,11 @@
+{
+    "discord": {
+        "host": "https://discord.com/api/"
+    },
+    "api": {
+        "host": "https://meme-bot.onrender.com/api"
+    },
+    "bot": {
+        "host": "https://meme-bot.cyclic.sh"
+    }
+}

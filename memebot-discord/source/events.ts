@@ -28,10 +28,6 @@ emitter.on('commands', async function(req, res) {
   }
 });
 
-/*
-/meme-register wallet:0xD7D190cdC6A7053CD5Ee76E966a1b9056dbA4774 proof:0xcfadf319fbfcf8a092c28e64862327d908d207998c945b9f4489af1b5b4cb22f0a97536c39510a93c0fd85c751c3f81dddfd89361675be9c64c2b3ec8cdb242a1c image1:https://media.discordapp.net/attachments/1026399782689853440/1026399782815666186/meme-cow-1.png image2:https://media.discordapp.net/attachments/1026399782689853440/1026399783113469972/meme-cow-2.png
-*/
-
 emitter.on('meme-register', async function(req, res, interaction) {
   const options = toOptionsHash(interaction.data.options);
   //make a message
@@ -64,7 +60,7 @@ emitter.on('meme-register', async function(req, res, interaction) {
   }
 
   //there's a 3 sec limit
-  reply(res, 'Registering...');
+  reply(res, `Registering ${interaction.member.user.username}...`);
 
   //make the api call
   const response = await tryTo(async () => {
@@ -75,7 +71,9 @@ emitter.on('meme-register', async function(req, res, interaction) {
     return await tryTo(async () => {
       return await discord.post(
         `/webhooks/${interaction.application_id}/${interaction.token}`,
-        message('Server looks to be down now.').data
+        message(`Sorry ${
+          interaction.member.user.username
+        }, server looks to be down now.`).data
       );
     })
   } else if (response.error) {
@@ -87,14 +85,14 @@ emitter.on('meme-register', async function(req, res, interaction) {
     });
   }
 
-  //const final  = await tryTo(async () => {
+  await tryTo(async () => {
     return await discord.post(
       `/webhooks/${interaction.application_id}/${interaction.token}`,
-      message('Successfully registered!').data
+      message(`${
+        interaction.member.user.username
+      } successfully registered!`).data
     )
-  //});
-
-  //console.log(final)
+  });
 });
 
 emitter.on('meme-start', async function(req, res, interaction) {
@@ -106,11 +104,57 @@ emitter.on('meme-start', async function(req, res, interaction) {
   );
 });
 
-emitter.on('meme', function(req, res, interaction) {
-  //query:
-  //console.log(interaction.data.options[0].value)
+emitter.on('meme', async function(req, res, interaction) {
+  //there's a 3 sec limit
+  reply(res, `Generating "${interaction.data.options[0].value}" for ${
+    interaction.member.user.username
+  }. This might take a few min...`);
+
+  //make url parameters
+  const params = new URLSearchParams();
+  params.append('q', interaction.data.options[0].value);
+  params.append('key', interaction.member.user.id);
+  params.append('key', interaction.member.user.id);
+  //params.append('skip', '0');
+
+  //make the api call
+  const response = await tryTo(async () => {
+    return await api.get(`/discord/search?${params.toString()}`);
+  });
   
-  return reply(res, `Yo ${interaction.member.user.username}!`);
+  if (!response.data) {
+    return await tryTo(async () => {
+      return await discord.post(
+        `/webhooks/${interaction.application_id}/${interaction.token}`,
+        message(`Sorry ${
+          interaction.member.user.username
+        }, server looks to be down now.`).data
+      );
+    })
+  } else if (response.data.error) {
+    return await tryTo(async () => {
+      return await discord.post(
+        `/webhooks/${interaction.application_id}/${interaction.token}`,
+        message(response.data.message).data
+      )
+    });
+  } else if (!response.data.results?.url) {
+    return await tryTo(async () => {
+      return await discord.post(
+        `/webhooks/${interaction.application_id}/${interaction.token}`,
+        message(`Sorry ${
+          interaction.member.user.username
+        }, no more results for "${interaction.data.options[0].value}".`).data
+      )
+    });
+  }
+
+  await tryTo(async () => {
+    return await discord.post(
+      `/webhooks/${interaction.application_id}/${interaction.token}`,
+      message(response.data.results.url).data
+    )
+  });
 });
 
 export default emitter;

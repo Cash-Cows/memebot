@@ -205,6 +205,9 @@ export default class MemeGenerator {
           service
         );
       } catch(e) {
+        if (e instanceof Error && e.message === 'Not enough balance') {
+          throw new Error('Not enough balance');
+        }
         //it could fail if
         // - No faces were detected
         // - Frames length does not match source data length
@@ -336,7 +339,7 @@ export default class MemeGenerator {
         .sub(BigNumber.from(consumer.consumed))
         .sub(rate)
         .toString()
-    ) > 0;
+    ) >= 0;
   }
 
   /**
