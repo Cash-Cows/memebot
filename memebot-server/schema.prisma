@@ -15,6 +15,7 @@ model Consumer {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   walletAddress String   @unique @db.VarChar(255)
+  discordId     String?  @unique @db.VarChar(255)
   consumed      String   @default("0")
   images        Json
   memes         Meme[]

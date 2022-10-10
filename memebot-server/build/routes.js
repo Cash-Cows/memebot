@@ -56,28 +56,41 @@ app.get('/api/ping', (req, res) => __awaiter(void 0, void 0, void 0, function* (
     res.json({ error: false, results: 'pong' });
 }));
 app.get('/api/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
     if (!((_a = req.query) === null || _a === void 0 ? void 0 : _a.wallet)) {
         return res.json({ error: true, message: 'Wallet address missing' });
     }
     else if (!((_b = req.query) === null || _b === void 0 ? void 0 : _b.image)) {
         return res.json({ error: true, message: 'Images missing' });
     }
+    else if (!((_c = req.query) === null || _c === void 0 ? void 0 : _c.discordId)) {
+        return res.json({ error: true, message: 'Discord ID missing' });
+    }
     const images = Array.isArray(req.query.image)
         ? req.query.image
         : [req.query.image];
     const walletAddress = String(req.query.wallet);
-    Consumer_1.default.register(walletAddress, images)
+    const discordId = String(req.query.discordId);
+    Consumer_1.default.register(walletAddress, discordId, images)
         .then(results => res.json({ error: false, results }))
         .catch(error => res.json({ error: true, message: error.message }));
 }));
 app.get('/api/user', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
-    if (!((_c = req.query) === null || _c === void 0 ? void 0 : _c.wallet)) {
+    var _d, _e, _f;
+    if (!((_d = req.query) === null || _d === void 0 ? void 0 : _d.wallet) && !((_e = req.query) === null || _e === void 0 ? void 0 : _e.discordId)) {
         return res.json({ error: true, message: 'Wallet address missing' });
     }
-    const walletAddress = String(req.query.wallet);
-    Consumer_1.default.getWithBalance(walletAddress, service)
+    let key;
+    let id;
+    if ((_f = req.query) === null || _f === void 0 ? void 0 : _f.wallet) {
+        key = 'walletAddress';
+        id = String(req.query.wallet);
+    }
+    else {
+        key = 'discordId';
+        id = String(req.query.discordId);
+    }
+    Consumer_1.default.getWithBalance(id, key, service)
         .then(results => res.json({ error: false, results }))
         .catch(error => res.json({ error: true, message: error.message }));
 }));
@@ -154,19 +167,27 @@ app.get('/api/vote/down', (req, res) => {
     }))
         .catch(error => res.json({ error: true, message: error.message }));
 });
-app.get('/api/discord/search', (req, res) => {
-    var _a, _b;
-    if (!((_a = req.query) === null || _a === void 0 ? void 0 : _a.q)) {
+app.get('/api/discord/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _g, _h;
+    if (!((_g = req.query) === null || _g === void 0 ? void 0 : _g.q)) {
         return res.json({ error: true, message: 'Query missing' });
     }
-    else if (!((_b = req.query) === null || _b === void 0 ? void 0 : _b.key)) {
+    else if (!((_h = req.query) === null || _h === void 0 ? void 0 : _h.key)) {
         return res.json({ error: true, message: 'API Key missing' });
     }
     const query = req.query.q;
-    const walletAddress = req.query.key;
     const skip = parseInt(req.query.skip || '0') || 0;
-    MemeGenerator_1.default.generateOne(walletAddress, query, service, skip)
+    const id = req.query.key;
+    const key = id.indexOf('0x') === 0 ? 'walletAddress' : 'discordId';
+    let consumer;
+    try {
+        consumer = yield Consumer_1.default.getOrThrow(id, key);
+    }
+    catch (error) {
+        return res.json({ error: true, message: 'Invalid API Key' });
+    }
+    MemeGenerator_1.default.generateOne(consumer, query, service, skip)
         .then(results => res.json({ error: false, results }))
         .catch(error => res.json({ error: true, message: error.message }));
-});
+}));
 exports.default = app;

@@ -22,26 +22,37 @@ export default class Consumer {
   /**
    * Returns consumer info
    */
-   public static async get(id: number|string) {
-    const where: ObjectAny = {};
-    if (typeof id === 'string') {
-      where.walletAddress = id;
-    } else {
-      where.id = id
+   public static async get(id: number|string, key: string|null = null) {
+    if (!key) {
+      if (typeof id === 'string') {
+        key = 'walletAddress';
+      } else {
+        key = 'id';
+      }  
     }
+
+    const where: ObjectAny = {};
+    where[key] = id;
     return await prisma.consumer.findUnique({ where });
   }
 
   /**
    * Returns consumer info
    */
-  public static async getOrThrow(id: number|string) {
-    const where: ObjectAny = {};
-    if (typeof id === 'string') {
-      where.walletAddress = id;
-    } else {
-      where.id = id
+  public static async getOrThrow(
+    id: number|string, 
+    key: string|null = null
+  ) {
+    if (!key) {
+      if (typeof id === 'string') {
+        key = 'walletAddress';
+      } else {
+        key = 'id';
+      }  
     }
+
+    const where: ObjectAny = {};
+    where[key] = id;
     return await prisma.consumer.findUniqueOrThrow({ where });
   }
 
@@ -50,9 +61,10 @@ export default class Consumer {
    */
   public static async getWithBalance(
     id: number|string, 
+    key: string,
     service: ServiceContract
   ) {
-    const consumer = await this.getOrThrow(id)
+    const consumer = await this.getOrThrow(id, key)
     const balance = await service.balanceOf(consumer.walletAddress);
     const consumed = BigNumber.from(consumer.consumed);
     return {
@@ -67,11 +79,15 @@ export default class Consumer {
    * Inserts/Updates a consumer. We need them registered to know what 
    * images to use when they generate
    */
-  public static async register(walletAddress: string, images: string[]) {
+  public static async register(
+    walletAddress: string, 
+    discordId: string, 
+    images: string[]
+  ) {
     return await prisma.consumer.upsert({
       where: { walletAddress },
       update: { images },
-      create: { walletAddress, images }
+      create: { walletAddress, images, discordId }
     })
   }
 }
