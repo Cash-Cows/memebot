@@ -110,6 +110,7 @@ memebot-blockchain/artifacts/@openzeppelin
 memebot-blockchain/artifacts/build-info
 memebot-blockchain/artifacts/hardhat
 memebot-blockchain/artifacts/contracts/mock
+migrations
 
 *.dbg.json
 

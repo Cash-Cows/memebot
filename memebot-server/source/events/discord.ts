@@ -16,7 +16,8 @@ import {
   InceptRequest, 
   InceptResponse,
   //general types
-  ObjectAny
+  ObjectAny,
+  ConsumerType
 } from '../utils';
 
 const web3 = new Web3();
@@ -114,57 +115,62 @@ emitter.on('discord-meme', async (
     }. This might take a few min...`
   });
 
-  const options = toOptionsHash(interaction.data.options);
+  const makeRecurse = (consumer: ConsumerType) => {
+    const recurse = async function(): Promise<string> {
+      const sources = await remit('source-search', params);
+      //if no source found
+      if (!sources.length) {
+        //means nothing else is available
+        return `Sorry ${
+          interaction.member.user.username
+        }, no more results for "${interaction.data.options[0].value}".`;
+      }
+  
+      for (const source of sources) {
+        //it no data
+        if (!Array.isArray(source.data) || !source.data.length) {
+          //skip
+          continue;
+        }
+        try {//to generate meme
+          const results = await remit('meme-generate', { consumer, source });
+          return results.url;
+          
+        } catch(e) {
+          if (e instanceof Error && e.message === 'Not enough balance') {
+            return 'Not enough balance';
+          }
+          //it could fail if
+          // - No faces were detected
+          // - Frames length does not match source data length
+        }
+      }
+  
+      params.start++;
+      return await recurse();
+    };
 
-  const consumer = await remit('consumer-detail', { 
-    discordId: interaction.member.user.id 
-  });
+    return recurse;
+  }
 
   //make params
+  const options = toOptionsHash(interaction.data.options);
   const params: ObjectAny = { q: options.query, range: 1 };
   params.start = parseInt(options.next || '0');
 
-  const recurse = async function(): Promise<string> {
-    const sources = await remit('source-search', params);
-    //if no source found
-    if (!sources.length) {
-      //means nothing else is available
-      return `Sorry ${
-        interaction.member.user.username
-      }, no more results for "${interaction.data.options[0].value}".`;
-    }
-
-    for (const source of sources) {
-      //it no data
-      if (!Array.isArray(source.data) || !source.data.length) {
-        //skip
-        continue;
-      }
-      try {//to generate meme
-        const results = await remit('meme-generate', { consumer, source });
-        return results.url;
-        
-      } catch(e) {
-        if (e instanceof Error && e.message === 'Not enough balance') {
-          return 'Not enough balance';
-        }
-        //it could fail if
-        // - No faces were detected
-        // - Frames length does not match source data length
-      }
-    }
-
-    params.start++;
-    return await recurse();
-  };
-
-  tryTo(() => recurse())
-    .then((content: string) => discord.post(
-      `/webhooks/${interaction.application_id}/${interaction.token}`,
-      message(content).data
-    ))
-    .catch(error => discord.post(
-      `/webhooks/${interaction.application_id}/${interaction.token}`,
-      message(error.message).data
-    ));
+  remit('consumer-detail', { 
+    discordId: interaction.member.user.id 
+  })
+  .then(consumer => {
+    const recurse = makeRecurse(consumer);
+    tryTo(async() => await recurse())
+      .then(content => discord.post(
+        `/webhooks/${interaction.application_id}/${interaction.token}`,
+        message(content).data
+      ))
+      .catch(error => discord.post(
+        `/webhooks/${interaction.application_id}/${interaction.token}`,
+        message(error.message).data
+      ));
+  });
 });

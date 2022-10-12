@@ -16,10 +16,7 @@ app.post('/interactions', verify, async (req, res) => {
   }
 
   remit(`discord-${interaction.data.name}`, { interaction })
-    .then(results => {
-      //console.log(results)
-      reply(res, results)
-    })
+    .then(results => reply(res, results))
     .catch(error => reply(res, error.message));
 });
 

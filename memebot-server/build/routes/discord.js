@@ -16,9 +16,7 @@ utils_1.app.post('/interactions', utils_1.verify, (req, res) => __awaiter(void 0
         return (0, utils_1.reply)(res, 'Not sure');
     }
     (0, utils_1.remit)(`discord-${interaction.data.name}`, { interaction })
-        .then(results => {
-        (0, utils_1.reply)(res, results);
-    })
+        .then(results => (0, utils_1.reply)(res, results))
         .catch(error => (0, utils_1.reply)(res, error.message));
 }));
 utils_1.app.get('/discord/register_commands', (req, res) => __awaiter(void 0, void 0, void 0, function* () {

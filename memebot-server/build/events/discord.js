@@ -56,37 +56,43 @@ utils_1.emitter.on('discord-meme', (req, res) => __awaiter(void 0, void 0, void 
         error: false,
         results: `Generating "${interaction.data.options[0].value}" for ${interaction.member.user.username}. This might take a few min...`
     });
-    const options = (0, utils_1.toOptionsHash)(interaction.data.options);
-    const consumer = yield (0, utils_1.remit)('consumer-detail', {
-        discordId: interaction.member.user.id
-    });
-    const params = { q: options.query, range: 1 };
-    params.start = parseInt(options.next || '0');
-    const recurse = function () {
-        return __awaiter(this, void 0, void 0, function* () {
-            const sources = yield (0, utils_1.remit)('source-search', params);
-            if (!sources.length) {
-                return `Sorry ${interaction.member.user.username}, no more results for "${interaction.data.options[0].value}".`;
-            }
-            for (const source of sources) {
-                if (!Array.isArray(source.data) || !source.data.length) {
-                    continue;
+    const makeRecurse = (consumer) => {
+        const recurse = function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                const sources = yield (0, utils_1.remit)('source-search', params);
+                if (!sources.length) {
+                    return `Sorry ${interaction.member.user.username}, no more results for "${interaction.data.options[0].value}".`;
                 }
-                try {
-                    const results = yield (0, utils_1.remit)('meme-generate', { consumer, source });
-                    return results.url;
-                }
-                catch (e) {
-                    if (e instanceof Error && e.message === 'Not enough balance') {
-                        return 'Not enough balance';
+                for (const source of sources) {
+                    if (!Array.isArray(source.data) || !source.data.length) {
+                        continue;
+                    }
+                    try {
+                        const results = yield (0, utils_1.remit)('meme-generate', { consumer, source });
+                        return results.url;
+                    }
+                    catch (e) {
+                        if (e instanceof Error && e.message === 'Not enough balance') {
+                            return 'Not enough balance';
+                        }
                     }
                 }
-            }
-            params.start++;
-            return yield recurse();
-        });
+                params.start++;
+                return yield recurse();
+            });
+        };
+        return recurse;
     };
-    (0, utils_1.tryTo)(() => recurse())
-        .then((content) => utils_1.discord.post(`/webhooks/${interaction.application_id}/${interaction.token}`, (0, utils_1.message)(content).data))
-        .catch(error => utils_1.discord.post(`/webhooks/${interaction.application_id}/${interaction.token}`, (0, utils_1.message)(error.message).data));
+    const options = (0, utils_1.toOptionsHash)(interaction.data.options);
+    const params = { q: options.query, range: 1 };
+    params.start = parseInt(options.next || '0');
+    (0, utils_1.remit)('consumer-detail', {
+        discordId: interaction.member.user.id
+    })
+        .then(consumer => {
+        const recurse = makeRecurse(consumer);
+        (0, utils_1.tryTo)(() => __awaiter(void 0, void 0, void 0, function* () { return yield recurse(); }))
+            .then(content => utils_1.discord.post(`/webhooks/${interaction.application_id}/${interaction.token}`, (0, utils_1.message)(content).data))
+            .catch(error => utils_1.discord.post(`/webhooks/${interaction.application_id}/${interaction.token}`, (0, utils_1.message)(error.message).data));
+    });
 }));
