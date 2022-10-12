@@ -48,7 +48,7 @@ export declare type TenorResponse = {
     results?: TenorResult[];
     next?: string;
 };
-export declare type SearchResult = {
+export declare type TenorSearchResult = {
     id: string;
     url: string;
     duration: number;
@@ -59,8 +59,8 @@ export declare type SearchResult = {
     tags: string[];
     audio: boolean;
 };
-export declare type SearchResponse = {
-    results: SearchResult[];
+export declare type TenorSearchResponse = {
+    results: TenorSearchResult[];
     next: string;
 };
 export declare type TX = {
@@ -74,4 +74,8 @@ export declare type IPFSResponse = {
     Name: string;
     Hash: string;
     Size: string;
+};
+export declare type ArrayOption = {
+    name: string;
+    value: string;
 };

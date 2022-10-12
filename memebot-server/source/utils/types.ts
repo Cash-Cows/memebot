@@ -55,7 +55,7 @@ export type TenorResponse = {
   next?: string
 };
 
-export type SearchResult = {
+export type TenorSearchResult = {
   id: string,
   url: string,
   duration: number,
@@ -67,8 +67,8 @@ export type SearchResult = {
   audio: boolean
 };
 
-export type SearchResponse = {
-  results: SearchResult[],
+export type TenorSearchResponse = {
+  results: TenorSearchResult[],
   next: string
 };
 
@@ -81,3 +81,8 @@ export type IPFSResponse = {
   Hash: string,
   Size: string
 };
+
+export type ArrayOption = {
+  name: string,
+  value: string
+}

@@ -482,6 +482,21 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@inceptjs/framework@0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@inceptjs/framework/-/framework-0.0.29.tgz#85b57409122526dd742f34e35c4729b2b9da5e83"
+  integrity sha512-H9s99LTaICLW8TthSatAGYTOvtL0AsHntyQ3O2+/hz9Scdug7WHMO/z57FlYwiPii5QoYgNRmPq6QYIIAyWD0Q==
+  dependencies:
+    "@inceptjs/types" "^0.0.29"
+    cookie "^0.4.1"
+    mime "^2.5.2"
+    node-fetch "^2.6.5"
+
+"@inceptjs/types@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@inceptjs/types/-/types-0.0.29.tgz#1f68062bc58f9c1f6e14c0651121e2d951f47381"
+  integrity sha512-8B2q7YUk21wWVd28MKj3x+YCjfQqX19UdtzbknaI1bJD5c1OdDuJ0dgVRs6DBjpXtQwDAJyF6jDvkmXNH73nqQ==
+
 "@jridgewell/resolve-uri@^3.0.3":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz#2203b118c157721addfe69d47b70465463066d78"
@@ -6568,6 +6583,11 @@ mime@1.6.0:
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
   integrity sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
 
+mime@^2.5.2:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/mime/-/mime-2.6.0.tgz#a2a682a95cd4d0cb1d6257e28f83da7e35800367"
+  integrity sha512-USPkMeET31rOMiarsBNIHZKLGgvKc/LrjofAnBlOttf5ajRvqiRA8QsenbcooctK6d6Ts6aqZXBA+XbkKthiQg==
+
 mimic-response@^1.0.0, mimic-response@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.1.tgz#4923538878eef42063cb8a3e3b0798781487ab1b"
@@ -6950,7 +6970,7 @@ node-environment-flags@1.0.6:
     object.getownpropertydescriptors "^2.0.3"
     semver "^5.7.0"
 
-node-fetch@2.6.7, node-fetch@^2.6.1, node-fetch@^2.6.7, node-fetch@~2.6.1:
+node-fetch@2.6.7, node-fetch@^2.6.1, node-fetch@^2.6.5, node-fetch@^2.6.7, node-fetch@~2.6.1:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==

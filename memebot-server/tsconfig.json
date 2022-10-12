@@ -17,7 +17,9 @@
   },
   "include": [ "source" ],
   "exclude": [
+    "archives",
     "build",
+    "config",
     "models",
     "migrations",
     "node_modules",

@@ -2,12 +2,12 @@
 import { 
   PrismaClient, 
   Prisma, 
-  Source, 
-  Consumer,
-  Search,
-  Meme
+  Source as SourceType, 
+  Consumer as ConsumerType,
+  Search as SearchType,
+  Meme as MemeType
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export { prisma, Prisma, Source, Consumer, Search, Meme };
+export { prisma, Prisma, SourceType, ConsumerType, SearchType, MemeType };

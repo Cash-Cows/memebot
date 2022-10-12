@@ -1,0 +1,61 @@
+[
+  {
+    "name": "meme",
+    "description": "Generates meme",
+    "options": [
+      {
+        "type": 3,
+        "name": "query",
+        "description": "Searches memes by keyword",
+        "required": 1
+      },
+      {
+        "type": 3,
+        "name": "next",
+        "description": "Share the next image",
+        "required": 0
+      }
+    ]
+  },
+  {
+    "name": "meme-start",
+    "description": "Instructions on how to start",
+    "options": []
+  },
+  {
+    "name": "meme-register",
+    "description": "Registers your wallet for memebot",
+    "options": [
+      {
+        "type": 3,
+        "name": "wallet",
+        "description": "Wallet address",
+        "required": 1
+      },
+      {
+        "type": 3,
+        "name": "proof",
+        "description": "Wallet signed verification",
+        "required": 1
+      },
+      {
+        "type": 3,
+        "name": "image1",
+        "description": "Face Image 1",
+        "required": 1
+      },
+      {
+        "type": 3,
+        "name": "image2",
+        "description": "Face Image 2",
+        "required": 0
+      },
+      {
+        "type": 3,
+        "name": "image3",
+        "description": "Face Image 3",
+        "required": 0
+      }
+    ]
+  }
+]
